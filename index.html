@@ -15,7 +15,7 @@
       newGame()
     }
     function newGame() {
-      board = new Board(18,15, 32)
+      board = new Board(18,15, 64)
       canvas.addEventListener('click', board.onClick.bind(board))
       board.draw(ctx)
     }
