@@ -1,123 +1,8 @@
 <html>
 <head>
+  <script src="js/cell.js"></script>
+  <script src="js/board.js"></script>
   <script>
-    class Cell {
-      constructor(x, y) {
-        this.x = x
-        this.y = y
-
-        const xoff = this.xoff = (y%2)*11 + 23*x
-        const yoff = this.yoff = y*20
-
-        this.path = new Path2D()
-        this.path.moveTo(10+xoff, yoff);
-        this.path.lineTo(20+xoff, 5+yoff);
-        this.path.lineTo(20+xoff, 16+yoff);
-        this.path.lineTo(10+xoff, 20+yoff);
-        this.path.lineTo(xoff, 16+yoff);
-        this.path.lineTo(xoff, 5+yoff);
-        this.path.closePath()
-
-        // contents hidden
-        this.state = 0
-        // B, 0-6
-        this.contents = null
-      }
-      draw(ctx) {
-        ctx.font = '12px arial';
-        // cell closed
-        if (this.state == 0) {
-          ctx.fillStyle = 'rgb(128,128,0)'
-          ctx.fill(this.path)
-          // @TODO Add flag feature
-        } else {
-          ctx.fillStyle = 'rgb(255,255,255)'
-          ctx.fill(this.path)
-          if (this.contents != 0) {
-            ctx.fillStyle = 'rgb(0,0,0)'
-            ctx.fillText(this.contents, this.xoff+4, this.yoff+15);
-          }
-        }
-        ctx.strokeStyle = 'rgb(0,0,0)'
-        ctx.stroke(this.path)
-      }
-    }
-    class Board {
-      constructor(width, height,bcount) {
-        this.width = width
-        this.height = height
-        this.bcount = bcount
-
-        const cells = this.cells = []
-        for (let j = 0; j < height; j++ ) {
-          for (let i = 0; i < width; i++ ) {
-            cells.push(new Cell(i,j))
-          }
-        }
-
-        // populate bees
-        const shuffle = cells.slice(0)
-                             .sort(() => Math.random()-0.5)
-                             .sort(() => Math.random()-0.5)
-        for (let i = 0; i < bcount; i++) {
-          shuffle[i].contents = 'B'
-        }
-
-        // calculate 0-6 of all other cells
-        this.cells.forEach(c => {
-          if (c.contents == 'B') return
-          c.contents = this.getAdjacent(c.x,c.y)
-            .filter(ac => ac.contents == 'B')
-            .length
-        })
-      }
-      draw(ctx) {
-        this.cells.forEach( c => c.draw(ctx) )
-      }
-      getCell(x,y) {
-        if (x < 0 || y < 0 || x >= this.width || y >= this.height ) {
-          return false
-        }
-        const cell = this.cells[y*this.width+x]
-        if(cell.x != x || cell.y != y) {
-          throw "getCell location mismatch"
-        }
-        return cell
-      }
-      getAdjacent(x,y) {
-        const adj = []
-        adj.push(this.getCell(x-1,y))
-        adj.push(this.getCell(x+1,y))
-        adj.push(this.getCell(x,y-1))
-        adj.push(this.getCell(x,y+1))
-        if ( y%2 ) {
-          adj.push(this.getCell(x+1,y-1))
-          adj.push(this.getCell(x+1,y+1))
-        } else {
-          adj.push(this.getCell(x-1,y-1))
-          adj.push(this.getCell(x-1,y+1))
-        }
-        return adj.filter(v => v)
-      }
-      onClick(e) {
-        const px = e.offsetX, py = e.offsetY
-        let v = this.cells.filter(c => ctx.isPointInPath(c.path, px, py))
-        if (v.length == 0) return
-        this.onClickImpl(v[0])
-      }
-      onClickImpl(v) {
-        console.log('click',v)
-        if (v.state == 0) {
-          v.state = 1
-          draw()
-          if (v.contents == 0) {
-            let adj = board.getAdjacent(v.x,v.y)
-            setTimeout(() => adj.forEach(a=>board.onClickImpl(a)),0)
-          }
-        }
-      }
-    }
-
     let canvas, ctx, board
 
     function onLoad() {
@@ -131,9 +16,6 @@
     function newGame() {
       board = new Board(18,15, 32)
       canvas.addEventListener('click', board.onClick.bind(board))
-      draw()
-    }
-    function draw() {
       board.draw(ctx)
     }
 </script>
