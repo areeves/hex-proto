@@ -19,6 +19,9 @@
       canvas.addEventListener('click', board.onClick.bind(board))
       board.draw(ctx)
     }
+    function toggleFlag(cb) {
+      board.flagMode = cb.checked
+    }
 </script>
 </head>
 <body onload="onLoad();">
@@ -53,5 +56,9 @@ of surival.
 <p>
   <canvas id="tutorial" width="450" height="300"></canvas>
   <p><button onclick="newGame()">New Game</button>
+  <label>
+    <input type="checkbox" value="true" onchange="toggleFlag(this)">
+    Place Flags
+  </label>
 </body>
 </html>

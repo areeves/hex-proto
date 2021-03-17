@@ -29,6 +29,8 @@ class Board {
         .filter(ac => ac.contents == 'B')
         .length
     })
+
+    this.flagMode = false
   }
   draw(ctx) {
     this.cells.forEach( c => c.draw(ctx) )
@@ -65,20 +67,30 @@ class Board {
     const px = e.offsetX, py = e.offsetY
     let v = this.cells.filter(c => ctx.isPointInPath(c.path, px, py))
     if (v.length == 0) return
-    this.onClickImpl(v[0])
+    if (this.flagMode) {
+      this.toggleFlag(v[0])
+    } else {
+      this.onClickImpl(v[0])
+    }
   }
   onClickImpl(v) {
     // ignore clicks on already revealed cells
-    if (v.state != 0) return
+    if (v.state != CELL_HONEY) return
 
     // reveal the cell and check win/lose
-    v.state = 1
-    if (this.cells.filter(c => c.contents != 'B' && c.state == 0).length == 0) {
-      this.status = 'win'
-      setTimeout(()=>alert("You win! Click New Game to play again."),)
-    } else if (v.contents == 'B') {
+    if (v.contents == 'B') {
+      v.state = CELL_DEATH
+      // reveal the Bs
+      this.cells.filter(c => c.contents == 'B' && c.state == CELL_HONEY)
+                .forEach(c => c.state = CELL_BEE)
       this.status = 'lose'
       setTimeout(()=> alert("You lose! Click New Game to try again."),0)
+    } else {
+      v.state = CELL_EMPTY
+      if (this.cells.filter(c => c.contents != 'B' && c.state == 0).length == 0) {
+        this.status = 'win'
+        setTimeout(()=>alert("You win! Click New Game to play again."),)
+      }
     }
     
     this.draw(ctx)
@@ -87,5 +99,13 @@ class Board {
       setTimeout(() => adj.forEach(a=>board.onClickImpl(a)),0)
     }
     
+  }
+  toggleFlag(v) {
+    if (v.state == CELL_HONEY) {
+      v.state = CELL_FLAG
+    } else if (v.state == CELL_FLAG) {
+      v.state = CELL_HONEY
+    }
+    this.draw(ctx)
   }
 }
